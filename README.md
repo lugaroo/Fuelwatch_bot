@@ -37,7 +37,7 @@
 
 ### Локально (без Docker)
 ```bash
-git clone https://github.com/yourusername/FuelWatch.git
+git clone https://github.com/lugaroo/Fuelwatch_bot.git
 cd FuelWatch
 python -m venv venv
 source venv/bin/activate  # или venv\Scripts\activate на Windows
