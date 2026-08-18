@@ -1,46 +1,125 @@
-# ⛽ FuelWatch
+# FuelWatch ⛽
 
-[![Telegram Bot](https://img.shields.io/badge/Telegram-@fuelwatch_rf_bot-blue?logo=telegram)](https://t.me/fuelwatch_rf_bot)
-[![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](https://python.org)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Docker Ready](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker)](https://docker.com)
+Telegram-бот для поиска ближайших АЗС и мониторинга наличия топлива.
 
-**FuelWatch** – независимый Telegram-бот для поиска АЗС и проверки наличия топлива в реальном времени.  
-Данные собираются самими водителями (краудсорсинг) и обновляются моментально.
+Пользователь отправляет геолокацию, бот находит ближайшие станции и показывает статус доступности топлива. Данные об АЗС собираются из OpenStreetMap и хранятся в локальной SQLite-базе.
 
----
+## Возможности
 
-## 🚀 Возможности
+- 📍 Поиск ближайших АЗС по геолокации
+- ⛽ Статусы АИ-92, АИ-95, АИ-98, АИ-100, ДТ и газа
+- 🔄 Обновление статусов топлива пользователями
+- 🗺️ Маршрут до выбранной АЗС
+- 📊 Административная статистика
+- 🔄 Синхронизация данных с OpenStreetMap
+- 🛡️ Retry и обработка ошибок внешних API
 
-- 📍 **Поиск АЗС по геолокации** – отправьте локацию, получите список ближайших станций с расстоянием.
-- ⛽ **Наличие топлива** – 92, 95, 98, 100, ДТ, Газ – статусы обновляются сообществом за 2 тапа.
-- 🗺️ **43 000+ АЗС по всей России** – база на основе OpenStreetMap, синхронизация с Overpass API.
-- 🧭 **Маршрут до АЗС** – встроенная интеграция с Яндекс.Картами.
-- 🔒 **Приватность** – храним только Telegram ID, никаких имён, телефонов или геолокаций.
-- 📊 **Админ-статистика** – HTML-отчёт с графиками активности (Chart.js).
-- 🔄 **Автообновление базы** – ежемесячная фоновая синхронизация с OSM.
+## Стек
 
----
+- Python 3
+- aiogram 3
+- SQLite
+- SQLAlchemy
+- OpenStreetMap / Overpass API
+- osmium
+- Chart.js
+- python-dotenv
 
-## 🛠️ Технологии
+## Структура
 
-- **Python 3.10+** + **aiogram 3.x** (FSM, polling)
-- **SQLite** (WAL-режим, индексы)
-- **OpenStreetMap** (osmium, PBF, Overpass API)
-- **Chart.js** – для админ-отчётов
-- **Cron + Systemd** – фоновые задачи
-- **Docker** – готовый образ для лёгкого деплоя
+    Fuelwatch_bot/
+    ├── services/       # Сервисы БД, API, геоданных и пользователей
+    ├── tools/          # Загрузка и синхронизация данных
+    ├── bot.py          # Telegram-бот
+    ├── config.py       # Конфигурация
+    └── requirements.txt
 
----
+## Установка
 
-## 📦 Установка и запуск
+    git clone https://github.com/lugaroo/Fuelwatch_bot.git
+    cd Fuelwatch_bot
+    python -m venv .venv
 
-### Локально (без Docker)
-```bash
-git clone https://github.com/lugaroo/Fuelwatch_bot.git
-cd FuelWatch
-python -m venv venv
-source venv/bin/activate  # или venv\Scripts\activate на Windows
-pip install -r requirements.txt
-# создайте .env с вашим BOT_TOKEN и другими настройками
-python bot/main.py
+### Windows
+
+    .venv\Scripts\activate
+
+### Linux / macOS
+
+    source .venv/bin/activate
+
+Установите зависимости:
+
+    pip install -r requirements.txt
+
+Создайте файл `.env` на основе `.env.example` и укажите токен Telegram-бота.
+
+## Создание базы данных
+
+Для работы бота необходим файл `stations.db`.
+
+### 1. Скачать данные OpenStreetMap
+
+Скачайте файл `russia-latest.osm.pbf` с Geofabrik:
+
+https://download.geofabrik.de/russia.html
+
+Поместите файл в корень проекта:
+
+    Fuelwatch_bot/
+    ├── russia-latest.osm.pbf
+    ├── bot.py
+    ├── config.py
+    └── ...
+
+### 2. Установить osmium
+
+Ubuntu / WSL:
+
+    sudo apt update
+    sudo apt install osmium-tool
+
+### 3. Создать базу
+
+    python tools/initial_load.py
+
+После завершения в корне проекта появится файл:
+
+    stations.db
+
+### 4. Проверить базу
+
+    python tools/check_db_full.py
+
+## Запуск
+
+После создания `stations.db`:
+
+    python bot.py
+
+## Синхронизация данных
+
+Для обновления данных об АЗС используются инструменты в `tools/`:
+
+    tools/
+    ├── initial_load.py   # Первоначальное создание базы
+    ├── run_sync.py       # Синхронизация данных
+    └── check_db_full.py  # Проверка базы
+
+## Архитектура
+
+    OpenStreetMap / Overpass API
+                 ↓
+              tools/
+                 ↓
+             stations.db
+                 ↓
+              bot.py
+                 ↓
+              aiogram
+                 ↓
+              Telegram
+
+## GitHub
+
+https://github.com/lugaroo/Fuelwatch_bot
